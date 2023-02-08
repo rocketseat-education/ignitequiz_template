@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { HouseLine } from 'phosphor-react-native';
 
 import { Header } from '../../components/Header';
 import { HistoryCard, HistoryProps } from '../../components/HistoryCard';
 
 import { styles } from './styles';
-import { historyGetAll } from '../../storage/quizHistoryStorage';
+import { historyGetAll, historyRemove } from '../../storage/quizHistoryStorage';
 import { Loading } from '../../components/Loading';
 
 export function History() {
@@ -20,6 +20,26 @@ export function History() {
     const response = await historyGetAll();
     setHistory(response);
     setIsLoading(false);
+  }
+
+  async function remove(id: string) {
+    await historyRemove(id);
+
+    fetchHistory();
+  }
+
+  function handleRemove(id: string) {
+    Alert.alert(
+      'Remover',
+      'Deseja remover esse registro?',
+      [
+        {
+          text: 'Sim', onPress: () => remove(id)
+        },
+        { text: 'Não', style: 'cancel' }
+      ]
+    );
+
   }
 
   useEffect(() => {
@@ -45,7 +65,12 @@ export function History() {
       >
         {
           history.map((item) => (
-            <HistoryCard key={item.id} data={item} />
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => handleRemove(item.id)}
+            >
+              <HistoryCard data={item} />
+            </TouchableOpacity>
           ))
         }
       </ScrollView>
