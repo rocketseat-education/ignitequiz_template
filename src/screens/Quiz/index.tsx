@@ -14,6 +14,18 @@ import { QuizHeader } from '../../components/QuizHeader';
 import { ConfirmButton } from '../../components/ConfirmButton';
 import { OutlineButton } from '../../components/OutlineButton';
 
+import Animated, {
+  Easing,
+  Extrapolate,
+  interpolate,
+  runOnJS,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated"
+
 interface Params {
   id: string;
 }
@@ -28,6 +40,23 @@ export function Quiz() {
   const [alternativeSelected, setAlternativeSelected] = useState<null | number>(null);
 
   const { navigate } = useNavigation();
+
+  const shake = useSharedValue(0)
+  const scrollY = useSharedValue(0)
+  const cardPosition = useSharedValue(0)
+  const shakeStyleAnimated = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateX: interpolate(
+            shake.value,
+            [0, 0.5, 1, 1.5, 2, 2.5, 0],
+            [0, -15, 0, 15, 0, -15, 0]
+          ),
+        },
+      ],
+    }
+  })
 
   const route = useRoute();
   const { id } = route.params as Params;
@@ -62,18 +91,37 @@ export function Quiz() {
     }
   }
 
+  // async function handleConfirm() {
+  //   if (alternativeSelected === null) {
+  //     return handleSkipConfirm();
+  //   }
+
+  //   if (quiz.questions[currentQuestion].correct === alternativeSelected) {
+  //     setPoints(prevState => prevState + 1);
+  //   }
+
+  //   setAlternativeSelected(null);
+
+  //   handleNextQuestion();
+  // }
+
   async function handleConfirm() {
     if (alternativeSelected === null) {
-      return handleSkipConfirm();
+      return handleSkipConfirm()
     }
 
     if (quiz.questions[currentQuestion].correct === alternativeSelected) {
-      setPoints(prevState => prevState + 1);
+      // setStatusReply(1)
+      setPoints(prevState => prevState + 1)
+      handleNextQuestion()
+    } else {
+      // setStatusReply(2)
+      shakeAnimation()
     }
 
-    setAlternativeSelected(null);
+    setAlternativeSelected(null)
 
-    handleNextQuestion();
+    handleNextQuestion()
   }
 
   function handleStop() {
@@ -90,6 +138,18 @@ export function Quiz() {
     ]);
 
     return true;
+  }
+
+  function shakeAnimation() {
+    shake.value = withSequence(
+      withTiming(3, { duration: 400, easing: Easing.bounce }),
+      withTiming(0, undefined, finished => {
+        "worklet"
+        if (finished) {
+          runOnJS(handleNextQuestion)()
+        }
+      })
+    )
   }
 
   useEffect(() => {
@@ -114,12 +174,27 @@ export function Quiz() {
           totalOfQuestions={quiz.questions.length}
         />
 
-        <Question
+        {/* <GestureDetector gesture={onPan}> */}
+          <Animated.View style={[shakeStyleAnimated, 
+            // dragStyles
+          ]}
+          >
+            <Question
+              key={quiz.questions[currentQuestion].title}
+              question={quiz.questions[currentQuestion]}
+              alternativeSelected={alternativeSelected}
+              setAlternativeSelected={setAlternativeSelected}
+              // onUnmount={() => setStatusReply(0)}
+            />
+          </Animated.View>
+        {/* </GestureDetector> */}
+
+        {/* <Question
           key={quiz.questions[currentQuestion].title}
           question={quiz.questions[currentQuestion]}
           alternativeSelected={alternativeSelected}
           setAlternativeSelected={setAlternativeSelected}
-        />
+        /> */}
 
         <View style={styles.footer}>
           <OutlineButton title="Parar" onPress={handleStop} />
