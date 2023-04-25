@@ -4,6 +4,9 @@ import { useFonts, Roboto_400Regular, Roboto_700Bold } from '@expo-google-fonts/
 import { Routes } from './src/routes';
 import { Loading } from './src/components/Loading';
 
+import "react-native-gesture-handler"
+import { GestureHandlerRootView } from "react-native-gesture-handler"
+
 export default function App() {
   const [fontsLoaded] = useFonts({ Roboto_400Regular, Roboto_700Bold });
 
@@ -15,12 +18,10 @@ export default function App() {
 
   return (
     <>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="transparent"
-        translucent
-      />
-      <Routes />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <StatusBar barStyle='light-content' backgroundColor='transparent' translucent />
+        <Routes />
+      </GestureHandlerRootView>
     </>
   );
 }
