@@ -72,8 +72,6 @@ export function Quiz() {
     }
 
     setAlternativeSelected(null);
-
-    handleNextQuestion();
   }
 
   function handleStop() {
@@ -97,6 +95,12 @@ export function Quiz() {
     setQuiz(quizSelected);
     setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (quiz.questions) {
+      handleNextQuestion();
+    }
+  }, [points]);
 
   if (isLoading) {
     return <Loading />
